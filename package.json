@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "ui5 build --clean-dest --include-task=generateManifestBundle generateCachebusterInfo",
-    "start": "ui5 serve -o index.html"
+    "start": "npx ui5 serve -o index.html"
   },
   "ui5": {
     "dependencies": [

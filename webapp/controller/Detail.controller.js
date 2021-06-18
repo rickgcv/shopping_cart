@@ -97,35 +97,6 @@ sap.ui.define([
 				this._bindView("/" + sObjectPath);
 			}.bind(this));
 
-			// var oModel = this.getModel();
-			//	oModel.read("/ProductSet('36322')")
-			// var oLineItemTable = this.byId("lineItemsList");
-			// oLineItemTable.bindElement("/ProductSet('" + sObjectId + "')", {
-			// 	expand: "ToSupplier"
-			// });
-			// /ProductSet('36322')
-			// var that = this;
-			// oModel.read("/ProductSet('" + sObjectId + "')", {
-			// 	async: true,
-			// 	urlParameters: {
-
-			// 		"$expand": "ToSupplier"
-			// 	},
-			// 	success: function (oData) { //successful Read in the server
-
-			// 		console.log(oData)
-			// 			// if (top !== 0) {
-			// 				var oJsonModel = new sap.ui.model.json.JSONModel();
-			// 				oJsonModel.setData(oData);
-			// 				that.getView().setModel(oJsonModel,"tableListItem");
-			// 			// } else {
-			// 			// 	that.initialCount = oData.results.length;
-			// 			// }
-
-			// 		// var oLineItemTable = that.byId("lineItemsList");
-			// 	},
-			// 	error: function () {}
-			// });
 		},
 
 		/**
@@ -355,11 +326,17 @@ sap.ui.define([
 			});
 			oModel.submitChanges({
 				groupId: "CreateSoLineItem",
-				success: $.proxy(function () {
+				success: $.proxy(function (oResp) {
 					console.log("ProxySess Changes Submit");
+					console.log(oResp);
+					console.log(oResp.__batchResponses[0])
 
 					this.getModel("utilModel").setProperty("/cartItems", "");
 					this.cartObjects = [];
+
+					this.sendPushMsg(oResp.__batchResponses[0].__changeResponses[0].data.SalesOrderID)	
+
+
 
 				}, this),
 				error: $.proxy(function () {
@@ -403,10 +380,67 @@ sap.ui.define([
 		onCheckoutCancelClick: function (oEvent) {
 			this.oConfirmDialog.close();
 
+			// $.ajax('http://credit-check-ibm.apps.cluster-ef85.dynamic.opentlc.com/creditcheck', 
+			// {
+				
+			// 	success: function (data,status,xhr) {   // success callback function
+			// 		console.log(data)
+			// 	},
+			// 	error: function ( errorMessage) { // error callback 
+			// 		console.log(errorMessage)
+			// 	}
+			// });
+
+
+
 		},
 		onAvatarPress:function(){
 			
 				MessageBox.information("Name  :  SAP.\n CustomerID: 0100000000 ");
+		},
+		sendPushMsg:function(createdSOId){
+
+
+			// var createdSoPushPayload={
+			// 	"records": [
+			// 	  {
+			// 		"key": "50000231",
+			// 		"value": { "SO": {"example":"test"}, "PO": {"example":"test"}}
+			// 	  }
+			// 	]
+			//   }
+			
+
+			//Sending to For Approval to Approver App
+			var payloadReq = {
+				"records": [
+				  {
+					"key": createdSOId,
+					"value": { "SO": {"REQ":"Created"}}
+				  }
+				]
+			  };
+
+			  var strpayloadReq = JSON.stringify(payloadReq);
+			  console.log(strpayloadReq)
+			$.ajax({
+					type: "POST",
+					processData:'false',
+					data: strpayloadReq,
+					url: 'http://kafka-bridge-ibm.apps.cluster-ef85.dynamic.opentlc.com/topics/so-request',
+					contentType : "application/vnd.kafka.json.v2+json",
+					success: function(resp){
+						console.log("success..........");
+						console.log(resp)
+					},
+					error:function(errr){
+						console.log("Errr");
+						console.log(errr)
+					}
+					
+				});
+
+
 		}
 
 	});

@@ -7,8 +7,9 @@ sap.ui.define([
 	"sap/m/GroupHeaderListItem",
 	"sap/ui/Device",
 	"sap/ui/core/Fragment",
-	"../model/formatter"
-], function (BaseController, JSONModel, Filter, Sorter, FilterOperator, GroupHeaderListItem, Device, Fragment, formatter) {
+	"../model/formatter",
+	"sap/m/MessageBox"
+], function (BaseController, JSONModel, Filter, Sorter, FilterOperator, GroupHeaderListItem, Device, Fragment, formatter,MessageBox) {
 	"use strict";
 
 	return BaseController.extend("socreation_test.SO_Create.controller.Master", {
@@ -74,6 +75,7 @@ sap.ui.define([
 
 			this.getRouter().getRoute("master").attachPatternMatched(this._onMasterMatched, this);
 			this.getRouter().attachBypassed(this.onBypassed, this);
+			this.keepListningForSO();
 		},
 
 		/* =========================================================== */
@@ -348,7 +350,105 @@ sap.ui.define([
 			var oViewModel = this.getModel("masterView");
 			oViewModel.setProperty("/isFilterBarVisible", (this._oListFilterState.aFilter.length > 0));
 			oViewModel.setProperty("/filterBarLabel", this.getResourceBundle().getText("masterFilterBarText", [sFilterBarText]));
-		}
+		},
+		keepListningForSO:function(){
+
+			var self = this;
+
+			//Lisning  for Approved Credit
+			setInterval(function(){ 
+				var that = self;
+				$.ajax({
+					url: "http://kafka-bridge-ibm.apps.cluster-ef85.dynamic.opentlc.com:80/consumers/credit-check-group/instances/ibm/records",
+					headers: {          
+						"Accept": "application/vnd.kafka.json.v2+json"  
+					},     
+							
+					success: function (result) {
+						console.log(result);
+						if(result.length>0){
+
+							// that.onRefresh();
+
+							MessageBox.show(
+								"Credit Approved for SO : "+result[0].key, {
+									icon: MessageBox.Icon.INFORMATION,
+									title: "Credit Approved",
+									actions: [MessageBox.Action.OK, MessageBox.Action.NO],
+									emphasizedAction: MessageBox.Action.OK,
+									onClose: function (oAction) {
+										/ * do something * /
+									}
+								}
+							);
+
+							
+
+						}
+		
+					},
+					error: function (err) {
+						console.log(err);
+						
+					}
+				});
+				
+			}, 10000);
+
+
+
+
+
+
+
+//Lisning for Approved SO
+
+			// setInterval(function(){ 
+			// 	var that = self;
+			// 	$.ajax({
+			// 		url: "http://kafka-bridge-ibm.apps.cluster-ef85.dynamic.opentlc.com:80/consumers/so-request-group/instances/ibm/records",
+			// 		headers: {          
+			// 			"Accept": "application/vnd.kafka.json.v2+json"  
+			// 		},     
+							
+			// 		success: function (result) {
+			// 			console.log(result);
+			// 			if(result.length>0){
+
+			// 				// that.onRefresh();
+
+			// 				MessageBox.show(
+			// 					"SO : "+result[0].key + " Approved ", {
+			// 						icon: MessageBox.Icon.INFORMATION,
+			// 						title: "SO Approved",
+			// 						actions: [MessageBox.Action.OK, MessageBox.Action.NO],
+			// 						emphasizedAction: MessageBox.Action.OK,
+			// 						onClose: function (oAction) {
+			// 							/ * do something * /
+			// 						}
+			// 					}
+			// 				);
+
+							
+
+			// 			}
+		
+			// 		},
+			// 		error: function (err) {
+			// 			console.log(err);
+						
+			// 		}
+			// 	});
+				
+			// }, 9000);
+
+
+
+
+
+
+
+		},
 
 	});
 

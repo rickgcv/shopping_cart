@@ -50,4 +50,14 @@ server:
     mountPath: /so-approval
     afterMiddleware: compression
     configuration:
-      baseUri: http://kafka-bridge-ibm.apps.cluster-ef85.dynamic.opentlc.com/topics/so-approval
+      baseUri: http://kafka-bridge-ibm.apps.cluster-ef85.dynamic.opentlc.com/topics
+  - name: ui5-middleware-simpleproxy
+    mountPath: /create"
+    afterMiddleware: compression
+    configuration:
+      baseUri: http://dummy.restapiexample.com/api/v1
+  - name: ui5-middleware-simpleproxy
+    mountPath: /creditcheck
+    afterMiddleware: compression
+    configuration:
+      baseUri: http://credit-check-ibm.apps.cluster-ef85.dynamic.opentlc.com/creditcheck
